@@ -3,13 +3,18 @@ package dev.andreasgeorgatos.pointofservicebackend.models.orders;
 import dev.andreasgeorgatos.pointofservicebackend.models.items.Product;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.query.sql.internal.ParameterRecognizerImpl;
 
 import java.math.BigDecimal;
 
 @Entity
 @Data
-@Table(name = "order_item")
+@Table(
+        name = "order_item",
+        indexes = {
+                @Index(name = "idx_order_item_order_id", columnList = "order_id"),
+                @Index(name = "idx_order_item_product_id", columnList = "product_id")
+        }
+)
 public class OrderItem {
 
     @Id
@@ -18,8 +23,7 @@ public class OrderItem {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    private Order order;;
-
+    private Order order;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)

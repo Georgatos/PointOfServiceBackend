@@ -35,7 +35,7 @@ public class Product {
     private Set<Ingredient> ingredients;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "category_id", nullable = false)
+    @Column(name = "category", nullable = false)
     private Category category;
 
     @Column(nullable = false, precision = 10, scale = 2)

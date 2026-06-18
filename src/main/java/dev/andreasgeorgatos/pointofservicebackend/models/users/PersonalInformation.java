@@ -18,7 +18,7 @@ public class PersonalInformation {
     @Column(unique = true, nullable = false)
     private String lastName;
 
-    @JoinColumn(unique = true, nullable = false)
     @OneToOne(mappedBy = "personalInformation", cascade = CascadeType.ALL)
+    @JoinColumn(name = "address_id", nullable = false)
     private Address address;
 }
