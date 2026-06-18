@@ -1,4 +1,4 @@
-package dev.andreasgeorgatos.pointofservicebackend.models.user;
+package dev.andreasgeorgatos.pointofservicebackend.models.users;
 
 import jakarta.persistence.*;
 import lombok.Data;
