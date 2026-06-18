@@ -1,5 +1,6 @@
 package dev.andreasgeorgatos.pointofservicebackend.models.orders;
 
+import dev.andreasgeorgatos.pointofservicebackend.enums.OrderStatus;
 import dev.andreasgeorgatos.pointofservicebackend.models.items.Product;
 import dev.andreasgeorgatos.pointofservicebackend.models.users.User;
 import jakarta.persistence.*;
