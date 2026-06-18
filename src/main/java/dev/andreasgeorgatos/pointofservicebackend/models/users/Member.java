@@ -22,7 +22,7 @@ public class Member {
     private MembershipTier membershipTier;
 
     @Column(nullable = false)
-    private Long pointsBalance = 0;
+    private Long pointsBalance;
 
     private Instant enrolledAt;
     private Instant lastVisitedAt;
