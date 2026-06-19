@@ -45,6 +45,4 @@ public class Member {
             this.pointsBalance = 0L;
         }
     }
-
-
 }

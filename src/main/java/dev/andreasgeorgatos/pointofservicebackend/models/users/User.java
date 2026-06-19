@@ -1,9 +1,11 @@
 package dev.andreasgeorgatos.pointofservicebackend.models.users;
 
+import dev.andreasgeorgatos.pointofservicebackend.models.orders.Order;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Data
@@ -23,6 +25,8 @@ public class User {
     @JoinColumn(name = "personal_information_id", unique = true)
     private PersonalInformation personalInformation;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Order> orders;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Member member;

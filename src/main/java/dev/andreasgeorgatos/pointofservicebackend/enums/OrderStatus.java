@@ -3,6 +3,8 @@ package dev.andreasgeorgatos.pointofservicebackend.enums;
 public enum OrderStatus {
 
     OPEN("Open", "Open"),
+    IN_PROGRESS("In_progress", "In_progress"),
+    READY("Ready", "Ready"),
     PAID("Paid", "Paid"),
     REFUNDED("Refunded", "Refunded"),
     VOIDED("Voided", "Voided");
