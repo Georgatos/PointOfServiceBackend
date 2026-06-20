@@ -1,4 +1,4 @@
-package dev.andreasgeorgatos.pointofservicebackend.controller;
+package dev.andreasgeorgatos.pointofservicebackend.controllers;
 
 import dev.andreasgeorgatos.pointofservicebackend.dto.RegistrationRequestDTO;
 import dev.andreasgeorgatos.pointofservicebackend.dto.UserRequestDTO;
