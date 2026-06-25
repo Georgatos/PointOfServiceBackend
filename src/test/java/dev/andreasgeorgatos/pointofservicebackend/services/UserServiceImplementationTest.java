@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -108,5 +109,91 @@ class UserServiceImplementationTest {
         assertThatThrownBy(() -> userService.getUserById(99L))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("User not found: 99");
+    }
+
+    @Test
+    void updateUser_changesRoles_whenRoleIdsProvided() {
+        Role adminRole = new Role();
+        adminRole.setId(2L);
+        adminRole.setName("ROLE_ADMIN");
+
+        Set<Long> roles = new HashSet<>();
+        roles.add(adminRole.getId());
+
+        UserRequestDTO request = new UserRequestDTO();
+
+        request.setEmail("georgatos@andreasgeorgatos.dev");
+        request.setRoleIds(roles);
+
+        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUser));
+        when(roleRepository.findById(2L)).thenReturn(Optional.of(adminRole));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UserResponseDTO result = userService.updateUser(42L, request);
+
+        ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userArgumentCaptor.capture());
+        User capturedUser = userArgumentCaptor.getValue();
+
+        assertThat(capturedUser.getRoles())
+                .extracting(Role::getName)
+                .containsExactly("ROLE_ADMIN");
+        assertThat(result.getRoles()).containsExactly("ROLE_ADMIN");
+    }
+
+    @Test
+    void updateUser_changesRoles_whenRoleIdsProvidedButWrongPermission() {
+        Role adminRole = new Role();
+        adminRole.setId(2L);
+        adminRole.setName("ROLE_ADMIN");
+
+        Set<Long> roles = new HashSet<>();
+        roles.add(adminRole.getId());
+
+        UserRequestDTO request = new UserRequestDTO();
+
+        request.setEmail("georgatos@andreasgeorgatos.dev");
+        request.setRoleIds(roles);
+
+        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUser));
+        when(roleRepository.findById(2L)).thenReturn(Optional.of(adminRole));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UserResponseDTO result = userService.updateUser(42L, request);
+
+        ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userArgumentCaptor.capture());
+        User capturedUser = userArgumentCaptor.getValue();
+
+        assertThat(capturedUser.getRoles())
+                .extracting(Role::getName)
+                .containsExactly("ROLE_ADMIN");
+        assertThat(result.getRoles()).containsExactly("ROLE_ADMIN");
+    }
+
+    @Test
+    void updateUser_whenUserMissing_throwsEntityNotFound() {
+        UserRequestDTO request = new UserRequestDTO();
+        request.setEmail("georgatos@andreasgeorgatos.dev");
+        request.setRoleIds(Set.of(1L));
+
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.updateUser(99L, request))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("User not found: 99");
+    }
+
+    @Test
+    void updateUser_whenRoleMissing_throwsEntityNotFound() {
+        UserRequestDTO request = new UserRequestDTO();
+        request.setEmail("georgatos@andreasgeorgatos.dev");
+        request.setRoleIds(Set.of(2L));
+
+        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUser));
+        when(roleRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.updateUser(42L, request))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 }
