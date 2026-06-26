@@ -8,6 +8,7 @@ import dev.andreasgeorgatos.pointofservicebackend.repository.RoleRepository;
 import dev.andreasgeorgatos.pointofservicebackend.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("User Service Implementation Test")
 class UserServiceImplementationTest {
 
     @Mock
