@@ -1,14 +1,10 @@
 package dev.andreasgeorgatos.pointofservicebackend.services;
 
-import dev.andreasgeorgatos.pointofservicebackend.dto.RegistrationRequestDTO;
-import dev.andreasgeorgatos.pointofservicebackend.dto.UserRequestDTO;
-import dev.andreasgeorgatos.pointofservicebackend.dto.UserResponseDTO;
-import dev.andreasgeorgatos.pointofservicebackend.models.users.Role;
-import jakarta.persistence.EntityNotFoundException;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.RegistrationRequestDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserResponseDTO;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public interface UserService {
 

@@ -1,9 +1,9 @@
 package dev.andreasgeorgatos.pointofservicebackend.services;
 
-import dev.andreasgeorgatos.pointofservicebackend.dto.UserRequestDTO;
-import dev.andreasgeorgatos.pointofservicebackend.dto.UserResponseDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserResponseDTO;
 import dev.andreasgeorgatos.pointofservicebackend.models.users.Role;
-import dev.andreasgeorgatos.pointofservicebackend.models.users.User;
+import dev.andreasgeorgatos.pointofservicebackend.models.users.Users;
 import dev.andreasgeorgatos.pointofservicebackend.repository.RoleRepository;
 import dev.andreasgeorgatos.pointofservicebackend.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -44,7 +44,7 @@ class UserServiceImplementationTest {
     @InjectMocks
     private UserServiceImplementation userService;
 
-    private User existingUser;
+    private Users existingUsers;
 
     @BeforeEach
     void setUp() {
@@ -53,14 +53,14 @@ class UserServiceImplementationTest {
         userRole.setId(1L);
         userRole.setName("ROLE_USER");
 
-        existingUser = new User();
+        existingUsers = new Users();
 
-        existingUser.setId(42L);
-        existingUser.setEmail("georgatos@andreasgeorgatos.dev");
-        existingUser.setPasswordHash("hashed_pw");
-        existingUser.setRoles(Set.of(userRole));
-        existingUser.setCreatedAt(Instant.now());
-        existingUser.setUpdatedAt(Instant.now());
+        existingUsers.setId(42L);
+        existingUsers.setEmail("georgatos@andreasgeorgatos.dev");
+        existingUsers.setPasswordHash("hashed_pw");
+        existingUsers.setRoles(Set.of(userRole));
+        existingUsers.setCreatedAt(Instant.now());
+        existingUsers.setUpdatedAt(Instant.now());
     }
 
     @Test
@@ -79,23 +79,23 @@ class UserServiceImplementationTest {
         when(userRepository.existsByEmail("georgatos@andreasgeorgatos.dev")).thenReturn(false);
         when(roleRepository.findById(1L)).thenReturn(Optional.of(userRole));
         when(passwordEncoder.encode("plainTextPassword123")).thenReturn("FAKE_HASHED_VALUE");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(Users.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         userService.createUser(request);
 
         verify(passwordEncoder).encode("plainTextPassword123");
 
-        ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<Users> userArgumentCaptor = ArgumentCaptor.forClass(Users.class);
         verify(userRepository).save(userArgumentCaptor.capture());
-        User capturedUser = userArgumentCaptor.getValue();
+        Users capturedUsers = userArgumentCaptor.getValue();
 
-        assertThat(capturedUser.getPasswordHash()).isEqualTo("FAKE_HASHED_VALUE");
-        assertThat(capturedUser.getPasswordHash()).isNotEqualTo("plainTextPassword123");
+        assertThat(capturedUsers.getPasswordHash()).isEqualTo("FAKE_HASHED_VALUE");
+        assertThat(capturedUsers.getPasswordHash()).isNotEqualTo("plainTextPassword123");
     }
 
     @Test
     void getUserById_whenUserExists_returnsMappedDto() {
-        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUsers));
 
         UserResponseDTO result = userService.getUserById(42L);
 
@@ -127,17 +127,17 @@ class UserServiceImplementationTest {
         request.setEmail("georgatos@andreasgeorgatos.dev");
         request.setRoleIds(roles);
 
-        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUsers));
         when(roleRepository.findById(2L)).thenReturn(Optional.of(adminRole));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(Users.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         UserResponseDTO result = userService.updateUser(42L, request);
 
-        ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<Users> userArgumentCaptor = ArgumentCaptor.forClass(Users.class);
         verify(userRepository).save(userArgumentCaptor.capture());
-        User capturedUser = userArgumentCaptor.getValue();
+        Users capturedUsers = userArgumentCaptor.getValue();
 
-        assertThat(capturedUser.getRoles())
+        assertThat(capturedUsers.getRoles())
                 .extracting(Role::getName)
                 .containsExactly("ROLE_ADMIN");
         assertThat(result.getRoles()).containsExactly("ROLE_ADMIN");
@@ -157,17 +157,17 @@ class UserServiceImplementationTest {
         request.setEmail("georgatos@andreasgeorgatos.dev");
         request.setRoleIds(roles);
 
-        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUsers));
         when(roleRepository.findById(2L)).thenReturn(Optional.of(adminRole));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(Users.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         UserResponseDTO result = userService.updateUser(42L, request);
 
-        ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<Users> userArgumentCaptor = ArgumentCaptor.forClass(Users.class);
         verify(userRepository).save(userArgumentCaptor.capture());
-        User capturedUser = userArgumentCaptor.getValue();
+        Users capturedUsers = userArgumentCaptor.getValue();
 
-        assertThat(capturedUser.getRoles())
+        assertThat(capturedUsers.getRoles())
                 .extracting(Role::getName)
                 .containsExactly("ROLE_ADMIN");
         assertThat(result.getRoles()).containsExactly("ROLE_ADMIN");
@@ -192,7 +192,7 @@ class UserServiceImplementationTest {
         request.setEmail("georgatos@andreasgeorgatos.dev");
         request.setRoleIds(Set.of(2L));
 
-        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findById(42L)).thenReturn(Optional.of(existingUsers));
         when(roleRepository.findById(2L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.updateUser(42L, request))

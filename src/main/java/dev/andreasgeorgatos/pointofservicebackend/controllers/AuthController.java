@@ -1,7 +1,7 @@
 package dev.andreasgeorgatos.pointofservicebackend.controllers;
 
-import dev.andreasgeorgatos.pointofservicebackend.dto.LoginRequestDTO;
-import dev.andreasgeorgatos.pointofservicebackend.dto.LoginResponseDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.LoginRequestDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.LoginResponseDTO;
 import dev.andreasgeorgatos.pointofservicebackend.security.JwtUtility;
 import dev.andreasgeorgatos.pointofservicebackend.security.UserPrincipal;
 import jakarta.validation.Valid;

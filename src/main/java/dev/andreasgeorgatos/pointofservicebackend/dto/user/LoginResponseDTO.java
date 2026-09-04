@@ -1,4 +1,4 @@
-package dev.andreasgeorgatos.pointofservicebackend.dto;
+package dev.andreasgeorgatos.pointofservicebackend.dto.user;
 
 import lombok.Getter;
 

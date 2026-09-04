@@ -1,15 +1,19 @@
 package dev.andreasgeorgatos.pointofservicebackend.models.items;
 
-import dev.andreasgeorgatos.pointofservicebackend.enums.Allergen;
 import dev.andreasgeorgatos.pointofservicebackend.enums.Category;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
+@ToString(onlyExplicitlyIncluded = true)
 @Table(name = "Product")
 public class Product {
 
@@ -27,11 +31,7 @@ public class Product {
     private String image;
 
     @ManyToMany
-    @JoinTable(
-            name = "product_ingredients",
-            joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "ingredient_id")
-    )
+    @JoinTable(name = "product_ingredients", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "ingredient_id"))
     private Set<Ingredient> ingredients;
 
     @Enumerated(EnumType.STRING)

@@ -1,11 +1,10 @@
 package dev.andreasgeorgatos.pointofservicebackend.controllers;
 
-import dev.andreasgeorgatos.pointofservicebackend.dto.RegistrationRequestDTO;
-import dev.andreasgeorgatos.pointofservicebackend.dto.UserRequestDTO;
-import dev.andreasgeorgatos.pointofservicebackend.dto.UserResponseDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.RegistrationRequestDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserResponseDTO;
 import dev.andreasgeorgatos.pointofservicebackend.services.UserService;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,19 +23,19 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('user:viewAll')")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("hasAnyAuthority('user:readAny') or #id == authentication.principal.id")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('user:createUser')")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO request) {
         UserResponseDTO created = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -49,14 +48,14 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('user:updateAnyUser') or #id == authentication.principal.id")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id,
                                                       @Valid @RequestBody UserRequestDTO request) {
         return ResponseEntity.ok(userService.updateUser(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('user:deleteAnyUser') or #id == authentication.principal.id")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();

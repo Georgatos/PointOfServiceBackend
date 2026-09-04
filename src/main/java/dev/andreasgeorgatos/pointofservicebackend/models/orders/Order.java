@@ -2,7 +2,7 @@ package dev.andreasgeorgatos.pointofservicebackend.models.orders;
 
 import dev.andreasgeorgatos.pointofservicebackend.enums.OrderStatus;
 import dev.andreasgeorgatos.pointofservicebackend.models.payments.Payment;
-import dev.andreasgeorgatos.pointofservicebackend.models.users.User;
+import dev.andreasgeorgatos.pointofservicebackend.models.users.Users;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -25,9 +25,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items;

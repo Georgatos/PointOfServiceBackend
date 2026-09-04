@@ -1,10 +1,10 @@
 package dev.andreasgeorgatos.pointofservicebackend.services;
 
-import dev.andreasgeorgatos.pointofservicebackend.dto.RegistrationRequestDTO;
-import dev.andreasgeorgatos.pointofservicebackend.dto.UserRequestDTO;
-import dev.andreasgeorgatos.pointofservicebackend.dto.UserResponseDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.RegistrationRequestDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserResponseDTO;
 import dev.andreasgeorgatos.pointofservicebackend.models.users.Role;
-import dev.andreasgeorgatos.pointofservicebackend.models.users.User;
+import dev.andreasgeorgatos.pointofservicebackend.models.users.Users;
 import dev.andreasgeorgatos.pointofservicebackend.repository.RoleRepository;
 import dev.andreasgeorgatos.pointofservicebackend.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -32,19 +32,15 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public List<UserResponseDTO> getAllUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+        return userRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserResponseDTO getUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
+        Users users = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
 
-        return toResponse(user);
+        return toResponse(users);
     }
 
     @Override
@@ -55,32 +51,31 @@ public class UserServiceImplementation implements UserService {
             throw new IllegalArgumentException("Email already in use: " + request.getEmail());
         }
 
-        User user = new User();
+        Users users = new Users();
 
-        user.setEmail(request.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setRoles(resolveRoles(request.getRoleIds()));
+        users.setEmail(request.getEmail());
+        users.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        users.setRoles(resolveRoles(request.getRoleIds()));
 
-        return toResponse(userRepository.save(user));
+        return toResponse(userRepository.save(users));
     }
 
     @Override
     @Transactional
     public UserResponseDTO updateUser(Long id, UserRequestDTO request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
+        Users users = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
 
-        user.setEmail(request.getEmail());
+        users.setEmail(request.getEmail());
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+            users.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
 
         if (request.getRoleIds() != null) {
-            user.setRoles(resolveRoles(request.getRoleIds()));
+            users.setRoles(resolveRoles(request.getRoleIds()));
         }
 
-        return toResponse(userRepository.save(user));
+        return toResponse(userRepository.save(users));
     }
 
     @Override
@@ -100,25 +95,24 @@ public class UserServiceImplementation implements UserService {
             throw new IllegalArgumentException("Email already in use: " + request.getEmail());
         }
 
-        Role defaultRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new EntityNotFoundException("Default role ROLE_USER not found"));
+        Role defaultRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new EntityNotFoundException("Default role ROLE_USER not found"));
 
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setRoles(Set.of(defaultRole));
+        Users users = new Users();
+        users.setEmail(request.getEmail());
+        users.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        users.setRoles(Set.of(defaultRole));
 
-        return toResponse(userRepository.save(user));
+        return toResponse(userRepository.save(users));
     }
 
-    private UserResponseDTO toResponse(User user) {
+    private UserResponseDTO toResponse(Users users) {
         UserResponseDTO dto = new UserResponseDTO();
 
-        dto.setId(user.getId());
-        dto.setEmail(user.getEmail());
-        dto.setRoles(user.getRoles() == null ? Set.of() : user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()));
-        dto.setCreatedAt(user.getCreatedAt());
-        dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setId(users.getId());
+        dto.setEmail(users.getEmail());
+        dto.setRoles(users.getRoles() == null ? Set.of() : users.getRoles().stream().map(Role::getName).collect(Collectors.toSet()));
+        dto.setCreatedAt(users.getCreatedAt());
+        dto.setUpdatedAt(users.getUpdatedAt());
 
         return dto;
     }
@@ -131,8 +125,7 @@ public class UserServiceImplementation implements UserService {
         }
 
         for (Long roleId : roleIds) {
-            Role role = roleRepository.findById(roleId)
-                    .orElseThrow(() -> new EntityNotFoundException("Role not found: " + roleId));
+            Role role = roleRepository.findById(roleId).orElseThrow(() -> new EntityNotFoundException("Role not found: " + roleId));
             roles.add(role);
         }
         return roles;

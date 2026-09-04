@@ -1,6 +1,6 @@
 package dev.andreasgeorgatos.pointofservicebackend.security;
 
-import dev.andreasgeorgatos.pointofservicebackend.models.users.User;
+import dev.andreasgeorgatos.pointofservicebackend.models.users.Users;
 import dev.andreasgeorgatos.pointofservicebackend.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Long userId = jwtUtility.extractUserId(token);
 
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                Optional<User> userOptional = userRepository.findById(userId);
+                Optional<Users> userOptional = userRepository.findById(userId);
 
                 if (userOptional.isPresent()) {
                     UserPrincipal principal = new UserPrincipal(userOptional.get());

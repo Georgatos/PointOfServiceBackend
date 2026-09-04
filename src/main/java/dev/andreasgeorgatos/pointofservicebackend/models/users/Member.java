@@ -9,7 +9,7 @@ import java.time.Instant;
 @Entity
 @Data
 @Table(name = "Member", indexes = {
-        @Index(name = "idx_member_user_id", columnList = "user_id")
+        @Index(name = "idx_member_user_id", columnList = "users_id")
 })
 public class Member {
 
@@ -21,8 +21,8 @@ public class Member {
     private String membershipNumber;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    @JoinColumn(name = "users_id", nullable = false, unique = true)
+    private Users users;
 
     @Enumerated(EnumType.STRING)
     private MembershipTier membershipTier;

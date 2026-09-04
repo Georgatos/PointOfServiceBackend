@@ -1,4 +1,4 @@
-package dev.andreasgeorgatos.pointofservicebackend.dto;
+package dev.andreasgeorgatos.pointofservicebackend.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
