@@ -35,5 +35,5 @@ public class Ingredient {
     private Set<Allergen> allergens;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    private BigDecimal costPerUnit;
 }

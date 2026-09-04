@@ -1,12 +1,15 @@
 package dev.andreasgeorgatos.pointofservicebackend.security;
 
+import dev.andreasgeorgatos.pointofservicebackend.models.users.Permission;
+import dev.andreasgeorgatos.pointofservicebackend.models.users.Role;
 import dev.andreasgeorgatos.pointofservicebackend.models.users.Users;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 public class UserPrincipal implements UserDetails {
 
@@ -23,9 +26,25 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return users.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toList());
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        if (users.getRoles() == null) {
+            return authorities;
+        }
+
+        for (Role role : users.getRoles()) {
+            authorities.add(new SimpleGrantedAuthority(role.getName()));
+
+            if (role.getPermissions() == null) {
+                continue;
+            }
+
+            for (Permission permission : role.getPermissions()) {
+                authorities.add(new SimpleGrantedAuthority(permission.getName()));
+            }
+        }
+
+        return authorities;
     }
 
     @Override

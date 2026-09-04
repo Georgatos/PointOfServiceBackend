@@ -12,10 +12,10 @@ public class PersonalInformation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String firstName;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String lastName;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, optional = false)

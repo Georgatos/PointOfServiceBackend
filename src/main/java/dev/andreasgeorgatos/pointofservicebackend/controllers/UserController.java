@@ -2,6 +2,7 @@ package dev.andreasgeorgatos.pointofservicebackend.controllers;
 
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.RegistrationRequestDTO;
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestEmailDTO;
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserResponseDTO;
 import dev.andreasgeorgatos.pointofservicebackend.services.UserService;
 import jakarta.validation.Valid;
@@ -35,7 +36,7 @@ public class UserController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('user:createUser')")
+    @PreAuthorize("hasAnyAuthority('user:createUser')")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO request) {
         UserResponseDTO created = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -48,14 +49,14 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('user:updateAnyUser') or #id == authentication.principal.id")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id,
-                                                      @Valid @RequestBody UserRequestDTO request) {
-        return ResponseEntity.ok(userService.updateUser(id, request));
+    @PreAuthorize("hasAnyAuthority('user:updateAnyUserEmail') or #id == authentication.principal.id")
+    public ResponseEntity<UserResponseDTO> updateUserEmail(@PathVariable Long id,
+                                                           @Valid @RequestBody UserRequestEmailDTO userRequestEmailDTO) {
+        return ResponseEntity.ok(userService.updateUserEmail(id, userRequestEmailDTO));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('user:deleteAnyUser') or #id == authentication.principal.id")
+    @PreAuthorize("hasAnyAuthority('user:deleteAnyUser') or #id == authentication.principal.id")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();

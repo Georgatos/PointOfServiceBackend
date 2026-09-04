@@ -48,7 +48,7 @@ public class ProductServiceImplementation implements ProductService {
         product.setCategory(request.category());
         product.setPrice(request.price());
 
-        return product;
+        return productRepository.save(product);
 
     }
 

@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @Entity
@@ -41,6 +42,14 @@ public class Users {
 
     @Column(nullable = false)
     private Instant updatedAt;
+
+    public static String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    public void setEmail(String email) {
+        this.email = normalizeEmail(email);
+    }
 
     @PrePersist
     void onCreate() {

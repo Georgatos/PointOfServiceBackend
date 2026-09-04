@@ -2,18 +2,21 @@ package dev.andreasgeorgatos.pointofservicebackend.services;
 
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.RegistrationRequestDTO;
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestDTO;
+import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestEmailDTO;
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserResponseDTO;
 import dev.andreasgeorgatos.pointofservicebackend.models.users.Role;
 import dev.andreasgeorgatos.pointofservicebackend.models.users.Users;
 import dev.andreasgeorgatos.pointofservicebackend.repository.RoleRepository;
 import dev.andreasgeorgatos.pointofservicebackend.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,11 +26,14 @@ public class UserServiceImplementation implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final String defaultRoleName;
 
-    public UserServiceImplementation(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImplementation(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,
+                                     @Value("${app.registration.default-role}") String defaultRoleName) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.defaultRoleName = defaultRoleName;
     }
 
     @Override
@@ -47,12 +53,11 @@ public class UserServiceImplementation implements UserService {
     @Transactional
     public UserResponseDTO createUser(UserRequestDTO request) {
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(Users.normalizeEmail(request.getEmail()))) {
             throw new IllegalArgumentException("Email already in use: " + request.getEmail());
         }
 
         Users users = new Users();
-
         users.setEmail(request.getEmail());
         users.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         users.setRoles(resolveRoles(request.getRoleIds()));
@@ -62,18 +67,15 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDTO updateUser(Long id, UserRequestDTO request) {
+    public UserResponseDTO updateUserEmail(Long id, UserRequestEmailDTO request) {
         Users users = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
 
-        users.setEmail(request.getEmail());
+        String newEmail = Users.normalizeEmail(request.getEmail());
 
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            users.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        if (!newEmail.equals(users.getEmail()) && userRepository.existsByEmail(newEmail)) {
+            throw new IllegalArgumentException("Email already in use: " + request.getEmail());
         }
-
-        if (request.getRoleIds() != null) {
-            users.setRoles(resolveRoles(request.getRoleIds()));
-        }
+        users.setEmail(newEmail);
 
         return toResponse(userRepository.save(users));
     }
@@ -91,11 +93,11 @@ public class UserServiceImplementation implements UserService {
     @Override
     @Transactional
     public UserResponseDTO registerUser(RegistrationRequestDTO request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(Users.normalizeEmail(request.getEmail()))) {
             throw new IllegalArgumentException("Email already in use: " + request.getEmail());
         }
 
-        Role defaultRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new EntityNotFoundException("Default role ROLE_USER not found"));
+        Role defaultRole = roleRepository.findByName(defaultRoleName).orElseThrow(() -> new EntityNotFoundException("Default role not found: " + defaultRoleName));
 
         Users users = new Users();
         users.setEmail(request.getEmail());
