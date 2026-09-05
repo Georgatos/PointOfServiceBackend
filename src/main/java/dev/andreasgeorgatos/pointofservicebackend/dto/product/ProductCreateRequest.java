@@ -18,7 +18,7 @@ public record ProductCreateRequest(@NotBlank
                                    String image,
                                    @NotEmpty
                                    @Size(max = 50, message = "A product cannot have more than 50 ingredients.")
-                                   Set<Ingredient> ingredients,
+                                   Set<Long> ingredientIds,
                                    @NotNull
                                    Category category,
                                    @NotNull

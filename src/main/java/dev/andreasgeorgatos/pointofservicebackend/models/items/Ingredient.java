@@ -4,11 +4,16 @@ import dev.andreasgeorgatos.pointofservicebackend.enums.Allergen;
 import dev.andreasgeorgatos.pointofservicebackend.enums.Category;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "Ingredient")
 public class Ingredient {
 
@@ -36,4 +41,16 @@ public class Ingredient {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal costPerUnit;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Ingredient that = (Ingredient) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

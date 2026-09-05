@@ -30,13 +30,13 @@ public class ProductController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('product:viewProduct')")
-    public ResponseEntity<Product> getProduct(long id) {
+    public ResponseEntity<Product> getProduct(@PathVariable long id) {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
     @PostMapping("/{id}")
     @PreAuthorize("hasAuthority('product:createProduct')")
-    public ResponseEntity<Product> createProduct(ProductCreateRequest request) {
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductCreateRequest request) {
         return ResponseEntity.ok(productService.createProduct(request));
     }
 
