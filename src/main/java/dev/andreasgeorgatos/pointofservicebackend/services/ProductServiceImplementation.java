@@ -62,7 +62,7 @@ public class ProductServiceImplementation implements ProductService {
     @Transactional
     public Product updateProduct(Long id, ProductCreateRequest request) {
         if (productRepository.findById(id).isEmpty()) {
-            throw new IllegalArgumentException("Product doesn't exists: " + request.name());
+            throw new EntityNotFoundException("Product not found: " + id);
         }
 
         Product product = productRepository.getReferenceById(id);
@@ -82,7 +82,7 @@ public class ProductServiceImplementation implements ProductService {
     @Transactional
     public void deleteProduct(Long id) {
         if (productRepository.findById(id).isEmpty()) {
-            throw new IllegalArgumentException("Product doesn't exists: " + id);
+            throw new EntityNotFoundException("Product not found: " + id);
         }
 
         productRepository.delete(productRepository.getReferenceById(id));

@@ -2,7 +2,6 @@ package dev.andreasgeorgatos.pointofservicebackend.dto;
 
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductCreateRequest;
 import dev.andreasgeorgatos.pointofservicebackend.enums.Category;
-import dev.andreasgeorgatos.pointofservicebackend.models.items.Ingredient;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -15,10 +14,9 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 @DisplayName("ProductCreateRequest validation")
 class ProductCreateRequestTest {
@@ -43,8 +41,8 @@ class ProductCreateRequestTest {
         factory.close();
     }
 
-    private Set<Ingredient> ingredients(int count) {
-        return Stream.generate(() -> mock(Ingredient.class)).limit(count).collect(Collectors.toSet());
+    private Set<Long> ingredients(int count) {
+        return LongStream.rangeClosed(1, count).boxed().collect(Collectors.toSet());
     }
 
     private ProductCreateRequest valid() {
@@ -122,13 +120,13 @@ class ProductCreateRequestTest {
     @Test
     @DisplayName("rejects a product with no ingredients")
     void emptyIngredients_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, Set.of(), CATEGORY, PRICE), "ingredients");
+        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, Set.of(), CATEGORY, PRICE), "ingredientIds");
     }
 
     @Test
     @DisplayName("rejects a null ingredient set")
     void nullIngredients_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, null, CATEGORY, PRICE), "ingredients");
+        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, null, CATEGORY, PRICE), "ingredientIds");
     }
 
     @Test
@@ -143,7 +141,7 @@ class ProductCreateRequestTest {
         Set<ConstraintViolation<ProductCreateRequest>> violations = validate(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(51), CATEGORY, PRICE));
 
         assertThat(violations).singleElement().satisfies(violation -> {
-            assertThat(violation.getPropertyPath()).hasToString("ingredients");
+            assertThat(violation.getPropertyPath()).hasToString("ingredientIds");
             assertThat(violation.getMessage()).isEqualTo("A product cannot have more than 50 ingredients.");
         });
     }
@@ -195,6 +193,6 @@ class ProductCreateRequestTest {
     void multipleInvalidFields_areAllReported() {
         Set<ConstraintViolation<ProductCreateRequest>> violations = validate(new ProductCreateRequest("", "", "", Set.of(), null, null));
 
-        assertThat(violations).extracting(violation -> violation.getPropertyPath().toString()).contains("name", "description", "image", "ingredients", "category", "price");
+        assertThat(violations).extracting(violation -> violation.getPropertyPath().toString()).contains("name", "description", "image", "ingredientIds", "category", "price");
     }
 }

@@ -3,7 +3,6 @@ package dev.andreasgeorgatos.pointofservicebackend.controllers;
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductCreateRequest;
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductResponseDTO;
 import dev.andreasgeorgatos.pointofservicebackend.enums.Category;
-import dev.andreasgeorgatos.pointofservicebackend.models.items.Ingredient;
 import dev.andreasgeorgatos.pointofservicebackend.models.items.Product;
 import dev.andreasgeorgatos.pointofservicebackend.services.ProductService;
 import jakarta.persistence.EntityNotFoundException;
@@ -66,7 +65,7 @@ class ProductControllerTest {
 
     @BeforeEach
     void setUp() {
-        request = new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, Set.of(mock(Ingredient.class)), CATEGORY, PRICE);
+        request = new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, Set.of(1L), CATEGORY, PRICE);
     }
 
     @Test
@@ -141,7 +140,7 @@ class ProductControllerTest {
         assertThat(captured.description()).isEqualTo(DESCRIPTION);
         assertThat(captured.image()).isEqualTo(IMAGE);
         assertThat(captured.category()).isEqualTo(CATEGORY);
-        assertThat(captured.ingredients()).hasSize(1);
+        assertThat(captured.ingredientIds()).hasSize(1);
         assertThat(captured.price()).isEqualByComparingTo(PRICE);
     }
 
@@ -156,7 +155,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("returns 200 with the updated product")
     void updateProduct_existingId_returnsUpdatedProduct() {
-        ProductCreateRequest updateRequest = new ProductCreateRequest("Espresso Doppio", DESCRIPTION, IMAGE, request.ingredients(), CATEGORY, new BigDecimal("3.80"));
+        ProductCreateRequest updateRequest = new ProductCreateRequest("Espresso Doppio", DESCRIPTION, IMAGE, request.ingredientIds(), CATEGORY, new BigDecimal("3.80"));
 
         when(productService.updateProduct(eq(PRODUCT_ID), any(ProductCreateRequest.class))).thenReturn(updatedProduct);
 
