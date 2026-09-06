@@ -119,13 +119,13 @@ class ProductControllerTest {
     }
 
     @Test
-    @DisplayName("returns 200 with the created product")
+    @DisplayName("returns 201 with the created product")
     void createProduct_validRequest_returnsCreatedProduct() {
         when(productService.createProduct(any(ProductCreateRequest.class))).thenReturn(product);
 
         ResponseEntity<Product> response = productController.createProduct(request);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isSameAs(product);
     }
 

@@ -38,8 +38,7 @@ public class UserController {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('user:createUser')")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO request) {
-        UserResponseDTO created = userService.createUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(request));
     }
 
     @PostMapping("/register")

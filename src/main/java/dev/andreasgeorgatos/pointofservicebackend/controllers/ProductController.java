@@ -5,14 +5,14 @@ import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductResponseDTO
 import dev.andreasgeorgatos.pointofservicebackend.models.items.Product;
 import dev.andreasgeorgatos.pointofservicebackend.services.ProductService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/api/v0/product")
 public class ProductController {
 
@@ -34,10 +34,10 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    @PostMapping("/{id}")
+    @PostMapping()
     @PreAuthorize("hasAuthority('product:createProduct')")
     public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductCreateRequest request) {
-        return ResponseEntity.ok(productService.createProduct(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(request));
     }
 
     @PutMapping("/{id}")
