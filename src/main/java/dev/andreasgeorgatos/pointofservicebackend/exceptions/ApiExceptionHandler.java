@@ -16,8 +16,8 @@ public class ApiExceptionHandler {
         return toResponse(HttpStatus.NOT_FOUND, e);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException e) {
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicateResourceException(DuplicateResourceException e) {
         return toResponse(HttpStatus.CONFLICT, e);
     }
 

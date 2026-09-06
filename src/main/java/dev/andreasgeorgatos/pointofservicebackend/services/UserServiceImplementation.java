@@ -4,6 +4,7 @@ import dev.andreasgeorgatos.pointofservicebackend.dto.user.RegistrationRequestDT
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestDTO;
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestEmailDTO;
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserResponseDTO;
+import dev.andreasgeorgatos.pointofservicebackend.exceptions.DuplicateResourceException;
 import dev.andreasgeorgatos.pointofservicebackend.models.users.Role;
 import dev.andreasgeorgatos.pointofservicebackend.models.users.Users;
 import dev.andreasgeorgatos.pointofservicebackend.repository.RoleRepository;
@@ -16,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,7 +54,7 @@ public class UserServiceImplementation implements UserService {
     public UserResponseDTO createUser(UserRequestDTO request) {
 
         if (userRepository.existsByEmail(Users.normalizeEmail(request.getEmail()))) {
-            throw new IllegalArgumentException("Email already in use: " + request.getEmail());
+            throw new DuplicateResourceException("Email already in use: " + request.getEmail());
         }
 
         Users users = new Users();
@@ -73,7 +73,7 @@ public class UserServiceImplementation implements UserService {
         String newEmail = Users.normalizeEmail(request.getEmail());
 
         if (!newEmail.equals(users.getEmail()) && userRepository.existsByEmail(newEmail)) {
-            throw new IllegalArgumentException("Email already in use: " + request.getEmail());
+            throw new DuplicateResourceException("Email already in use: " + request.getEmail());
         }
         users.setEmail(newEmail);
 
@@ -94,7 +94,7 @@ public class UserServiceImplementation implements UserService {
     @Transactional
     public UserResponseDTO registerUser(RegistrationRequestDTO request) {
         if (userRepository.existsByEmail(Users.normalizeEmail(request.getEmail()))) {
-            throw new IllegalArgumentException("Email already in use: " + request.getEmail());
+            throw new DuplicateResourceException("Email already in use: " + request.getEmail());
         }
 
         Role defaultRole = roleRepository.findByName(defaultRoleName).orElseThrow(() -> new EntityNotFoundException("Default role not found: " + defaultRoleName));

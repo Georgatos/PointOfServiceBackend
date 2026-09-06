@@ -10,6 +10,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.util.Set;
@@ -24,8 +26,13 @@ class ProductCreateRequestTest {
     private static final String NAME = "Espresso";
     private static final String DESCRIPTION = "A double shot of arabica.";
     private static final String IMAGE = "https://cdn.example.com/espresso.png";
-    private static final Category CATEGORY = Category.values()[0];
+    private static final Category CATEGORY = Category.BEVERAGES;
     private static final BigDecimal PRICE = new BigDecimal("2.50");
+
+    private static final int NAME_MAX = 120;
+    private static final int DESCRIPTION_MAX = 1000;
+    private static final int IMAGE_MAX = 500;
+    private static final int INGREDIENTS_MAX = 50;
 
     private static ValidatorFactory factory;
     private static Validator validator;
@@ -49,96 +56,189 @@ class ProductCreateRequestTest {
         return new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(3), CATEGORY, PRICE);
     }
 
+    private ProductCreateRequest withName(String name) {
+        return new ProductCreateRequest(name, DESCRIPTION, IMAGE, ingredients(1), CATEGORY, PRICE);
+    }
+
+    private ProductCreateRequest withDescription(String description) {
+        return new ProductCreateRequest(NAME, description, IMAGE, ingredients(1), CATEGORY, PRICE);
+    }
+
+    private ProductCreateRequest withImage(String image) {
+        return new ProductCreateRequest(NAME, DESCRIPTION, image, ingredients(1), CATEGORY, PRICE);
+    }
+
+    private ProductCreateRequest withIngredients(Set<Long> ingredientIds) {
+        return new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredientIds, CATEGORY, PRICE);
+    }
+
+    private ProductCreateRequest withPrice(BigDecimal price) {
+        return new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(1), CATEGORY, price);
+    }
+
     private Set<ConstraintViolation<ProductCreateRequest>> validate(ProductCreateRequest request) {
         return validator.validate(request);
     }
 
     private void assertViolatesOnly(ProductCreateRequest request, String property) {
-        assertThat(validate(request)).extracting(violation -> violation.getPropertyPath().toString()).containsOnly(property);
+        assertThat(validate(request)).isNotEmpty().extracting(violation -> violation.getPropertyPath().toString()).containsOnly(property);
+    }
+
+    private void assertAccepted(ProductCreateRequest request) {
+        assertThat(validate(request)).isEmpty();
     }
 
     @Test
     @DisplayName("accepts a fully populated request")
     void validRequest_hasNoViolations() {
-        assertThat(validate(valid())).isEmpty();
+        assertAccepted(valid());
     }
 
     @Test
+    @DisplayName("accepts a request sitting on every upper boundary at once")
+    void requestAtEveryUpperBoundary_isAccepted() {
+        assertAccepted(new ProductCreateRequest(
+                "E".repeat(NAME_MAX),
+                "d".repeat(DESCRIPTION_MAX),
+                "i".repeat(IMAGE_MAX),
+                ingredients(INGREDIENTS_MAX),
+                CATEGORY,
+                new BigDecimal("99999999.99")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "   ", "\t", "\n"})
     @DisplayName("rejects a blank name")
-    void blankName_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest("   ", DESCRIPTION, IMAGE, ingredients(1), CATEGORY, PRICE), "name");
+    void blankName_isRejected(String name) {
+        assertViolatesOnly(withName(name), "name");
     }
 
     @Test
     @DisplayName("rejects a null name")
     void nullName_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(null, DESCRIPTION, IMAGE, ingredients(1), CATEGORY, PRICE), "name");
+        assertViolatesOnly(withName(null), "name");
     }
 
     @Test
     @DisplayName("rejects a name shorter than two characters")
     void nameTooShort_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest("E", DESCRIPTION, IMAGE, ingredients(1), CATEGORY, PRICE), "name");
+        assertViolatesOnly(withName("E"), "name");
+    }
+
+    @Test
+    @DisplayName("accepts a name at the two character lower boundary")
+    void nameAtMinLength_isAccepted() {
+        assertAccepted(withName("Es"));
     }
 
     @Test
     @DisplayName("rejects a name longer than 120 characters")
     void nameTooLong_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest("E".repeat(121), DESCRIPTION, IMAGE, ingredients(1), CATEGORY, PRICE), "name");
+        assertViolatesOnly(withName("E".repeat(NAME_MAX + 1)), "name");
     }
 
     @Test
     @DisplayName("accepts a name at the 120 character boundary")
     void nameAtMaxLength_isAccepted() {
-        assertThat(validate(new ProductCreateRequest("E".repeat(120), DESCRIPTION, IMAGE, ingredients(1), CATEGORY, PRICE))).isEmpty();
+        assertAccepted(withName("E".repeat(NAME_MAX)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "   ", "\t"})
+    @DisplayName("rejects a blank description")
+    void blankDescription_isRejected(String description) {
+        assertViolatesOnly(withDescription(description), "description");
     }
 
     @Test
-    @DisplayName("rejects a blank description")
-    void blankDescription_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, "   ", IMAGE, ingredients(1), CATEGORY, PRICE), "description");
+    @DisplayName("rejects a null description")
+    void nullDescription_isRejected() {
+        assertViolatesOnly(withDescription(null), "description");
+    }
+
+    @Test
+    @DisplayName("rejects a description shorter than two characters")
+    void descriptionTooShort_isRejected() {
+        assertViolatesOnly(withDescription("d"), "description");
+    }
+
+    @Test
+    @DisplayName("accepts a description at the two character lower boundary")
+    void descriptionAtMinLength_isAccepted() {
+        assertAccepted(withDescription("de"));
     }
 
     @Test
     @DisplayName("rejects a description longer than 1000 characters")
     void descriptionTooLong_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, "d".repeat(1001), IMAGE, ingredients(1), CATEGORY, PRICE), "description");
+        assertViolatesOnly(withDescription("d".repeat(DESCRIPTION_MAX + 1)), "description");
     }
 
     @Test
+    @DisplayName("accepts a description at the 1000 character boundary")
+    void descriptionAtMaxLength_isAccepted() {
+        assertAccepted(withDescription("d".repeat(DESCRIPTION_MAX)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "   ", "\t"})
     @DisplayName("rejects a blank image")
-    void blankImage_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, "   ", ingredients(1), CATEGORY, PRICE), "image");
+    void blankImage_isRejected(String image) {
+        assertViolatesOnly(withImage(image), "image");
+    }
+
+    @Test
+    @DisplayName("rejects a null image")
+    void nullImage_isRejected() {
+        assertViolatesOnly(withImage(null), "image");
+    }
+
+    @Test
+    @DisplayName("rejects an image reference shorter than two characters")
+    void imageTooShort_isRejected() {
+        assertViolatesOnly(withImage("i"), "image");
     }
 
     @Test
     @DisplayName("rejects an image reference longer than 500 characters")
     void imageTooLong_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, "i".repeat(501), ingredients(1), CATEGORY, PRICE), "image");
+        assertViolatesOnly(withImage("i".repeat(IMAGE_MAX + 1)), "image");
+    }
+
+    @Test
+    @DisplayName("accepts an image reference at the 500 character boundary")
+    void imageAtMaxLength_isAccepted() {
+        assertAccepted(withImage("i".repeat(IMAGE_MAX)));
     }
 
     @Test
     @DisplayName("rejects a product with no ingredients")
     void emptyIngredients_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, Set.of(), CATEGORY, PRICE), "ingredientIds");
+        assertViolatesOnly(withIngredients(Set.of()), "ingredientIds");
     }
 
     @Test
     @DisplayName("rejects a null ingredient set")
     void nullIngredients_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, null, CATEGORY, PRICE), "ingredientIds");
+        assertViolatesOnly(withIngredients(null), "ingredientIds");
+    }
+
+    @Test
+    @DisplayName("accepts a product with a single ingredient")
+    void singleIngredient_isAccepted() {
+        assertAccepted(withIngredients(ingredients(1)));
     }
 
     @Test
     @DisplayName("accepts exactly 50 ingredients")
     void fiftyIngredients_isAccepted() {
-        assertThat(validate(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(50), CATEGORY, PRICE))).isEmpty();
+        assertAccepted(withIngredients(ingredients(INGREDIENTS_MAX)));
     }
 
     @Test
     @DisplayName("rejects more than 50 ingredients with the custom message")
     void tooManyIngredients_isRejectedWithCustomMessage() {
-        Set<ConstraintViolation<ProductCreateRequest>> violations = validate(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(51), CATEGORY, PRICE));
+        Set<ConstraintViolation<ProductCreateRequest>> violations = validate(withIngredients(ingredients(INGREDIENTS_MAX + 1)));
 
         assertThat(violations).singleElement().satisfies(violation -> {
             assertThat(violation.getPropertyPath()).hasToString("ingredientIds");
@@ -155,37 +255,39 @@ class ProductCreateRequestTest {
     @Test
     @DisplayName("rejects a null price")
     void nullPrice_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(1), CATEGORY, null), "price");
+        assertViolatesOnly(withPrice(null), "price");
     }
 
-    @Test
-    @DisplayName("rejects a free product")
-    void zeroPrice_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(1), CATEGORY, new BigDecimal("0.00")), "price");
-    }
-
-    @Test
-    @DisplayName("rejects a negative price")
-    void negativePrice_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(1), CATEGORY, new BigDecimal("-0.01")), "price");
+    @ParameterizedTest
+    @ValueSource(strings = {"0.00", "0", "-0.01", "-1.00"})
+    @DisplayName("rejects a price that is not strictly positive")
+    void nonPositivePrice_isRejected(String price) {
+        assertViolatesOnly(withPrice(new BigDecimal(price)), "price");
     }
 
     @Test
     @DisplayName("accepts the smallest price above zero")
     void smallestPositivePrice_isAccepted() {
-        assertThat(validate(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(1), CATEGORY, new BigDecimal("0.01")))).isEmpty();
+        assertAccepted(withPrice(new BigDecimal("0.01")));
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {"2.555", "2.5551", "0.001"})
     @DisplayName("rejects a price with more than two decimal places")
-    void priceWithTooManyFractionDigits_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(1), CATEGORY, new BigDecimal("2.555")), "price");
+    void priceWithTooManyFractionDigits_isRejected(String price) {
+        assertViolatesOnly(withPrice(new BigDecimal(price)), "price");
     }
 
     @Test
     @DisplayName("rejects a price with more than eight integer digits")
     void priceWithTooManyIntegerDigits_isRejected() {
-        assertViolatesOnly(new ProductCreateRequest(NAME, DESCRIPTION, IMAGE, ingredients(1), CATEGORY, new BigDecimal("123456789.00")), "price");
+        assertViolatesOnly(withPrice(new BigDecimal("123456789.00")), "price");
+    }
+
+    @Test
+    @DisplayName("accepts a price at the eight integer digit boundary")
+    void priceAtMaxIntegerDigits_isAccepted() {
+        assertAccepted(withPrice(new BigDecimal("99999999.99")));
     }
 
     @Test
@@ -193,6 +295,8 @@ class ProductCreateRequestTest {
     void multipleInvalidFields_areAllReported() {
         Set<ConstraintViolation<ProductCreateRequest>> violations = validate(new ProductCreateRequest("", "", "", Set.of(), null, null));
 
-        assertThat(violations).extracting(violation -> violation.getPropertyPath().toString()).contains("name", "description", "image", "ingredientIds", "category", "price");
+        assertThat(violations)
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .contains("name", "description", "image", "ingredientIds", "category", "price");
     }
 }

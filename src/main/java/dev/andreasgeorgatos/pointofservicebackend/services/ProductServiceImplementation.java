@@ -2,6 +2,7 @@ package dev.andreasgeorgatos.pointofservicebackend.services;
 
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductCreateRequest;
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductResponseDTO;
+import dev.andreasgeorgatos.pointofservicebackend.exceptions.DuplicateResourceException;
 import dev.andreasgeorgatos.pointofservicebackend.models.items.Ingredient;
 import dev.andreasgeorgatos.pointofservicebackend.models.items.Product;
 import dev.andreasgeorgatos.pointofservicebackend.repository.IngredientRepository;
@@ -42,7 +43,7 @@ public class ProductServiceImplementation implements ProductService {
     @Transactional
     public Product createProduct(ProductCreateRequest request) {
         if (productRepository.existsByName(request.name())) {
-            throw new IllegalArgumentException("Product already exists: " + request.name());
+            throw new DuplicateResourceException("Product already exists: " + request.name());
         }
 
         Product product = new Product();

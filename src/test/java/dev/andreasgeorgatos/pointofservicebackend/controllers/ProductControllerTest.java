@@ -3,6 +3,7 @@ package dev.andreasgeorgatos.pointofservicebackend.controllers;
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductCreateRequest;
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductResponseDTO;
 import dev.andreasgeorgatos.pointofservicebackend.enums.Category;
+import dev.andreasgeorgatos.pointofservicebackend.exceptions.DuplicateResourceException;
 import dev.andreasgeorgatos.pointofservicebackend.models.items.Product;
 import dev.andreasgeorgatos.pointofservicebackend.services.ProductService;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,10 +35,11 @@ class ProductControllerTest {
 
     private static final long PRODUCT_ID = 7L;
     private static final long MISSING_ID = 99L;
+    private static final long MISSING_INGREDIENT_ID = 404L;
     private static final String NAME = "Espresso";
     private static final String DESCRIPTION = "A double shot of arabica.";
     private static final String IMAGE = "https://cdn.example.com/espresso.png";
-    private static final Category CATEGORY = Category.values()[0];
+    private static final Category CATEGORY = Category.BEVERAGES;
     private static final BigDecimal PRICE = new BigDecimal("2.50");
 
     @Mock
@@ -69,7 +71,7 @@ class ProductControllerTest {
     }
 
     @Test
-    @DisplayName("returns 200 with every product the service reports")
+    @DisplayName("returns 200 with every product the service reports, in order")
     void getAllProducts_returnsAllProducts() {
         when(productService.getAllProducts()).thenReturn(List.of(firstProduct, secondProduct));
 
@@ -79,6 +81,7 @@ class ProductControllerTest {
         assertThat(response.getBody()).isNotNull().containsExactly(firstProduct, secondProduct);
 
         verify(productService).getAllProducts();
+        verifyNoMoreInteractions(productService);
     }
 
     @Test
@@ -110,7 +113,9 @@ class ProductControllerTest {
     void getProduct_missingId_propagatesEntityNotFound() {
         when(productService.getProductById(MISSING_ID)).thenThrow(new EntityNotFoundException("Product not found: " + MISSING_ID));
 
-        assertThatThrownBy(() -> productController.getProduct(MISSING_ID)).isInstanceOf(EntityNotFoundException.class).hasMessageContaining(String.valueOf(MISSING_ID));
+        assertThatThrownBy(() -> productController.getProduct(MISSING_ID))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining(String.valueOf(MISSING_ID));
     }
 
     @Test
@@ -140,16 +145,29 @@ class ProductControllerTest {
         assertThat(captured.description()).isEqualTo(DESCRIPTION);
         assertThat(captured.image()).isEqualTo(IMAGE);
         assertThat(captured.category()).isEqualTo(CATEGORY);
-        assertThat(captured.ingredientIds()).hasSize(1);
+        assertThat(captured.ingredientIds()).containsExactly(1L);
         assertThat(captured.price()).isEqualByComparingTo(PRICE);
     }
 
     @Test
     @DisplayName("propagates the service's rejection of a duplicate product")
-    void createProduct_serviceRejects_propagatesException() {
-        when(productService.createProduct(any(ProductCreateRequest.class))).thenThrow(new IllegalArgumentException("Product already exists: " + NAME));
+    void createProduct_duplicateName_propagatesDuplicateResource() {
+        when(productService.createProduct(any(ProductCreateRequest.class))).thenThrow(new DuplicateResourceException("Product already exists: " + NAME));
 
-        assertThatThrownBy(() -> productController.createProduct(request)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(NAME);
+        assertThatThrownBy(() -> productController.createProduct(request))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessageContaining(NAME);
+    }
+
+    @Test
+    @DisplayName("propagates EntityNotFoundException when an ingredient id cannot be resolved")
+    void createProduct_unknownIngredientId_propagatesEntityNotFound() {
+        when(productService.createProduct(any(ProductCreateRequest.class))).thenThrow(new EntityNotFoundException("Ingredient not found: " + MISSING_INGREDIENT_ID));
+
+        assertThatThrownBy(() -> productController.createProduct(request))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Ingredient not found")
+                .hasMessageContaining(String.valueOf(MISSING_INGREDIENT_ID));
     }
 
     @Test
@@ -166,15 +184,22 @@ class ProductControllerTest {
     }
 
     @Test
-    @DisplayName("passes the path id and the request body to the service")
+    @DisplayName("passes the path id and the submitted body, not the original, to the service")
     void updateProduct_passesIdAndRequestToService() {
+        ProductCreateRequest updateRequest = new ProductCreateRequest("Espresso Doppio", DESCRIPTION, IMAGE, Set.of(2L, 3L), CATEGORY, new BigDecimal("3.80"));
+
         when(productService.updateProduct(eq(PRODUCT_ID), any(ProductCreateRequest.class))).thenReturn(updatedProduct);
 
-        productController.updateProduct(PRODUCT_ID, request);
+        productController.updateProduct(PRODUCT_ID, updateRequest);
 
         verify(productService).updateProduct(eq(PRODUCT_ID), requestCaptor.capture());
 
-        assertThat(requestCaptor.getValue()).isSameAs(request);
+        ProductCreateRequest captured = requestCaptor.getValue();
+
+        assertThat(captured).isSameAs(updateRequest).isNotSameAs(request);
+        assertThat(captured.name()).isEqualTo("Espresso Doppio");
+        assertThat(captured.ingredientIds()).containsExactlyInAnyOrder(2L, 3L);
+        assertThat(captured.price()).isEqualByComparingTo(new BigDecimal("3.80"));
     }
 
     @Test
@@ -182,7 +207,19 @@ class ProductControllerTest {
     void updateProduct_missingId_propagatesEntityNotFound() {
         when(productService.updateProduct(eq(MISSING_ID), any(ProductCreateRequest.class))).thenThrow(new EntityNotFoundException("Product not found: " + MISSING_ID));
 
-        assertThatThrownBy(() -> productController.updateProduct(MISSING_ID, request)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> productController.updateProduct(MISSING_ID, request))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining(String.valueOf(MISSING_ID));
+    }
+
+    @Test
+    @DisplayName("propagates EntityNotFoundException when an update names an unknown ingredient")
+    void updateProduct_unknownIngredientId_propagatesEntityNotFound() {
+        when(productService.updateProduct(eq(PRODUCT_ID), any(ProductCreateRequest.class))).thenThrow(new EntityNotFoundException("Ingredient not found: " + MISSING_INGREDIENT_ID));
+
+        assertThatThrownBy(() -> productController.updateProduct(PRODUCT_ID, request))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Ingredient not found");
     }
 
     @Test
@@ -194,6 +231,7 @@ class ProductControllerTest {
         assertThat(response.getBody()).isNull();
 
         verify(productService).deleteProduct(PRODUCT_ID);
+        verifyNoMoreInteractions(productService);
     }
 
     @Test
@@ -201,7 +239,9 @@ class ProductControllerTest {
     void deleteProduct_missingId_propagatesEntityNotFound() {
         doThrow(new EntityNotFoundException("Product not found: " + MISSING_ID)).when(productService).deleteProduct(MISSING_ID);
 
-        assertThatThrownBy(() -> productController.deleteProduct(MISSING_ID)).isInstanceOf(EntityNotFoundException.class).hasMessageContaining(String.valueOf(MISSING_ID));
+        assertThatThrownBy(() -> productController.deleteProduct(MISSING_ID))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining(String.valueOf(MISSING_ID));
     }
 
     @Test
@@ -210,6 +250,18 @@ class ProductControllerTest {
         when(productService.getProductById(PRODUCT_ID)).thenReturn(product);
 
         productController.getProduct(PRODUCT_ID);
+
+        verify(productService, never()).createProduct(any());
+        verify(productService, never()).updateProduct(any(), any());
+        verify(productService, never()).deleteProduct(any());
+    }
+
+    @Test
+    @DisplayName("listing products never mutates them")
+    void getAllProducts_doesNotTouchWriteOperations() {
+        when(productService.getAllProducts()).thenReturn(List.of(firstProduct));
+
+        productController.getAllProducts();
 
         verify(productService, never()).createProduct(any());
         verify(productService, never()).updateProduct(any(), any());

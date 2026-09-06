@@ -44,14 +44,12 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody RegistrationRequestDTO request) {
-        UserResponseDTO created = userService.registerUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('user:updateAnyUserEmail') or #id == authentication.principal.id")
-    public ResponseEntity<UserResponseDTO> updateUserEmail(@PathVariable Long id,
-                                                           @Valid @RequestBody UserRequestEmailDTO userRequestEmailDTO) {
+    public ResponseEntity<UserResponseDTO> updateUserEmail(@PathVariable Long id, @Valid @RequestBody UserRequestEmailDTO userRequestEmailDTO) {
         return ResponseEntity.ok(userService.updateUserEmail(id, userRequestEmailDTO));
     }
 
