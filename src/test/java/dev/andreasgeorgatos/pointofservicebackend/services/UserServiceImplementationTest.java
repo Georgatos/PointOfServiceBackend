@@ -9,6 +9,7 @@ import dev.andreasgeorgatos.pointofservicebackend.models.users.Role;
 import dev.andreasgeorgatos.pointofservicebackend.models.users.Users;
 import dev.andreasgeorgatos.pointofservicebackend.repository.RoleRepository;
 import dev.andreasgeorgatos.pointofservicebackend.repository.UserRepository;
+import dev.andreasgeorgatos.pointofservicebackend.services.user.UserServiceImplementation;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

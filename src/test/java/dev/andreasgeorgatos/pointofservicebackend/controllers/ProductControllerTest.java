@@ -5,7 +5,7 @@ import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductResponseDTO
 import dev.andreasgeorgatos.pointofservicebackend.enums.Category;
 import dev.andreasgeorgatos.pointofservicebackend.exceptions.DuplicateResourceException;
 import dev.andreasgeorgatos.pointofservicebackend.models.items.Product;
-import dev.andreasgeorgatos.pointofservicebackend.services.ProductService;
+import dev.andreasgeorgatos.pointofservicebackend.services.product.ProductService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

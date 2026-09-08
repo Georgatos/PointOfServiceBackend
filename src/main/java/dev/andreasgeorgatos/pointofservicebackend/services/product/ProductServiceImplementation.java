@@ -1,4 +1,4 @@
-package dev.andreasgeorgatos.pointofservicebackend.services;
+package dev.andreasgeorgatos.pointofservicebackend.services.product;
 
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductCreateRequest;
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductResponseDTO;

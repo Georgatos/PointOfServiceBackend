@@ -3,7 +3,7 @@ package dev.andreasgeorgatos.pointofservicebackend.controllers;
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductCreateRequest;
 import dev.andreasgeorgatos.pointofservicebackend.dto.product.ProductResponseDTO;
 import dev.andreasgeorgatos.pointofservicebackend.models.items.Product;
-import dev.andreasgeorgatos.pointofservicebackend.services.ProductService;
+import dev.andreasgeorgatos.pointofservicebackend.services.product.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

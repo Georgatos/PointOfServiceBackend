@@ -4,7 +4,7 @@ import dev.andreasgeorgatos.pointofservicebackend.dto.user.RegistrationRequestDT
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestDTO;
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserRequestEmailDTO;
 import dev.andreasgeorgatos.pointofservicebackend.dto.user.UserResponseDTO;
-import dev.andreasgeorgatos.pointofservicebackend.services.UserService;
+import dev.andreasgeorgatos.pointofservicebackend.services.user.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
